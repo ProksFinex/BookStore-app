@@ -1,6 +1,8 @@
 import React from "react";
 import { Link } from "react-router-dom";
 import { useForm } from "react-hook-form";
+import axios from "axios";
+import toast from "react-hot-toast";
 
 function Login() {
     const {
@@ -9,7 +11,36 @@ function Login() {
         formState: { errors },
     } = useForm();
 
-    const onSubmit = (data) => console.log(data);
+    const onSubmit = async (data) =>{
+        const userInfo={
+            //this beacuse frontend m yehi mill raha tha jab hum hum console.log(data) kar rahe the toh.. yahi se value utha rahe hai ab
+            
+            email:data.email,
+            password:data.password
+        }// ab issi info ko humko store krna h toh api ko call krnge
+       await axios.post("http://localhost:4001/user/login",userInfo) //iss url m ye info save krwani thi
+        .then((res)=>{  
+            console.log(res.data)   
+            if(res.data){
+                
+                toast.success('Loggedin Successfully !');
+                document.getElementById("my_modal_3").close();
+                setTimeout(()=>{
+                    window.location.reload();
+                    //stire krna hia usko browser ka local storage m
+                    localStorage.setItem("Users",JSON.stringify(res.data.user))//res.data isse object k form m aayega jo humko nahi chaiye
+                    //res.data.user = isse msg ni jayega user cerated wala bass main info jayegi jo user m hai i.e name id n all
+                },1000)
+            }
+        }).catch((err)=>{
+            //response ka messge show krna hai yaha pe
+            if(err.response){
+                console.log(err)
+                toast.error("Error:"+err.response.data.message);
+                setTimeout(()=>{},2000)
+            }  
+        })
+    }
     return (
         <div>
         <dialog id="my_modal_3" className="modal">
@@ -17,8 +48,9 @@ function Login() {
             <form onSubmit={handleSubmit(onSubmit)} method="dialog">
                 {/* if there is a button in form, it will close the modal */}
                 <Link
-                to="/"
+                    to="/"
                 className="btn btn-sm btn-circle btn-ghost absolute right-2 top-2"
+                onClick={()=>document.getElementById("my_model_3").close()}
                 >
                 ✕
                 </Link>
